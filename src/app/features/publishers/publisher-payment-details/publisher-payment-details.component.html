@@ -1,0 +1,192 @@
+<!-- Payment Details Page -->
+<div class="min-h-screen bg-[#080b14] px-4 sm:px-8 py-8 font-['Inter',_sans-serif] space-y-7">
+
+  <!-- ─── Toast Notification ──────────────────────────────── -->
+  <div
+    *ngIf="toastMessage"
+    class="fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl border shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300"
+    [ngClass]="{
+      'bg-emerald-500/15 border-emerald-500/30 text-emerald-300': toastMessage.type === 'success',
+      'bg-red-500/15 border-red-500/30 text-red-300': toastMessage.type === 'error'
+    }"
+  >
+    <svg *ngIf="toastMessage.type === 'success'" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+    </svg>
+    <svg *ngIf="toastMessage.type === 'error'" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+    <span class="text-xs font-semibold">{{ toastMessage.text }}</span>
+  </div>
+
+  <!-- ─── Breadcrumb ───────────────────────────────────────── -->
+  <nav class="flex items-center gap-2 text-xs text-zinc-500 font-mono">
+    <button (click)="goBack()" class="flex items-center gap-1.5 text-zinc-500 hover:text-[#D2BBFF] transition-colors cursor-pointer group">
+      <svg class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Publishers
+    </button>
+    <span class="text-zinc-700">/</span>
+    <button (click)="goBack()" class="text-zinc-500 hover:text-[#D2BBFF] transition-colors cursor-pointer truncate max-w-40">
+      {{ details?.publisherName || publisherId }}
+    </button>
+    <span class="text-zinc-700">/</span>
+    <span class="text-zinc-300 font-semibold">Payment Method</span>
+  </nav>
+
+  <!-- ─── Page Header ──────────────────────────────────────── -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div class="space-y-2">
+      <div class="flex items-center gap-3">
+        <!-- Back Button -->
+        <button
+          (click)="goBack()"
+          class="w-9 h-9 rounded-xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.08] hover:border-[#7C3AED]/40 transition-all cursor-pointer group"
+          title="Back to Publisher Details"
+        >
+          <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <h1 class="text-2xl font-extrabold font-['Sora',_sans-serif] bg-gradient-to-r from-[#D2BBFF] to-[#9575CD] bg-clip-text text-transparent tracking-tight">
+          Payment Method Details
+        </h1>
+      </div>
+
+      <!-- Subtitle row: account type badge + name + ID -->
+      <div class="flex items-center gap-3 pl-12 flex-wrap" *ngIf="details">
+        <span class="px-2.5 py-1 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[10px] font-bold font-mono uppercase tracking-widest text-zinc-400">
+          {{ details.accountType || 'STANDARD' }}
+        </span>
+        <span class="text-sm text-zinc-500 font-mono">
+          {{ details.publisherName || '—' }}
+          <span class="text-zinc-600 mx-1">•</span>
+          ID: <span class="text-zinc-400 font-semibold">{{ details.displayId || publisherId }}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Secure badge -->
+    <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-emerald-400 text-xs font-semibold self-start mt-1">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+      </svg>
+      Encrypted · Read-Only
+    </div>
+  </div>
+
+  <!-- ─── Loading State ────────────────────────────────────── -->
+  <div *ngIf="isLoading" class="bg-[#12151f] border border-[#2a2d3d] rounded-2xl p-20 flex flex-col items-center gap-5 shadow-xl">
+    <div class="relative">
+      <div class="w-16 h-16 rounded-2xl bg-[#7C3AED]/10 border border-[#7C3AED]/20 flex items-center justify-center">
+        <svg class="animate-spin w-7 h-7 text-[#7C3AED]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+      </div>
+    </div>
+    <p class="text-sm text-zinc-400 font-mono">Fetching payment details...</p>
+  </div>
+
+  <!-- ─── Error State ──────────────────────────────────────── -->
+  <div *ngIf="!isLoading && errorMessage" class="bg-[#12151f] border border-red-500/20 rounded-2xl p-16 flex flex-col items-center gap-5 text-center shadow-xl">
+    <div class="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+    </div>
+    <div class="space-y-1">
+      <h3 class="text-base font-bold text-white font-['Sora',_sans-serif]">Failed to Load Payment Details</h3>
+      <p class="text-xs text-zinc-400 max-w-sm mx-auto">{{ errorMessage }}</p>
+    </div>
+    <button
+      (click)="loadDetails(publisherId)"
+      class="px-6 py-2.5 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(124,58,237,0.3)] cursor-pointer"
+    >
+      Retry
+    </button>
+  </div>
+
+  <!-- ─── Main Content ─────────────────────────────────────── -->
+  <div *ngIf="!isLoading && details" class="space-y-5">
+
+    <!-- Card container with dark inner bg and bank-card accent stripe -->
+    <div class="bg-[#12151f] border border-[#2a2d3d] rounded-2xl overflow-hidden shadow-[0_4px_40px_rgba(0,0,0,0.4)]">
+
+      <!-- Card Header stripe -->
+      <div class="bg-gradient-to-r from-[#2e1a47] via-[#1e1535] to-[#12151f] px-7 py-5 border-b border-[#2a2d3d] flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-3.5">
+          <!-- Bank icon -->
+          <div class="w-11 h-11 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-300 shrink-0">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M4 10h3v7H4zM10.5 10h3v7h-3zM17 10h3v7h-3zM2 19h20v2H2zM12 1L2 6v2h20V6z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-bold font-['Sora',_sans-serif] text-white">Bank Transfer Information</h2>
+            <p class="text-xs text-zinc-500 mt-0.5">All fields are read-only. Click the copy icon to copy any value.</p>
+          </div>
+        </div>
+
+        <!-- Method badge -->
+        <span *ngIf="details.method" class="px-3 py-1.5 rounded-full text-[10px] font-bold font-mono uppercase tracking-widest bg-purple-500/10 border border-purple-500/25 text-purple-300">
+          {{ details.method }}
+        </span>
+      </div>
+
+      <!-- Fields Grid -->
+      <div class="p-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ng-container *ngFor="let field of fields">
+          <div
+            class="relative group bg-[#0a0c14] border border-[#2a2d3d] rounded-xl px-4 py-3.5 transition-all duration-200 hover:border-[#7C3AED]/40 hover:shadow-[0_0_0_1px_rgba(124,58,237,0.15)]"
+            [ngClass]="{ 'md:col-span-2': field.key === 'bankAddress' }"
+          >
+            <!-- Label -->
+            <span class="text-[10px] font-mono font-semibold uppercase tracking-widest text-zinc-600 block mb-1">
+              {{ field.label }}
+            </span>
+
+            <!-- Value + Copy button -->
+            <div class="flex items-center justify-between gap-3">
+              <span
+                class="text-sm font-mono break-all leading-relaxed"
+                [ngClass]="getFieldValue(field.key) === '—' ? 'text-zinc-600 italic' : 'text-gray-200'"
+              >
+                {{ getFieldValue(field.key) }}
+              </span>
+
+              <!-- Copy button — only shown when there's a real value -->
+              <button
+                *ngIf="getFieldValue(field.key) !== '—'"
+                (click)="copyToClipboard(getFieldValue(field.key), field.label)"
+                [title]="'Copy ' + field.label"
+                class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border"
+                [ngClass]="copiedField === field.label
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                  : 'bg-white/[0.03] border-white/[0.06] text-zinc-600 hover:text-purple-300 hover:bg-purple-500/10 hover:border-purple-500/30 opacity-0 group-hover:opacity-100'"
+              >
+                <!-- Copied checkmark -->
+                <svg *ngIf="copiedField === field.label" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+                <!-- Copy icon -->
+                <svg *ngIf="copiedField !== field.label" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+    </div>
+
+    <!-- Footer note -->
+    <p class="text-center text-[11px] text-zinc-600 font-mono pb-4">
+      Sensitive banking data is encrypted at rest. Displayed values are decrypted for authorized admin use only.
+    </p>
+
+  </div>
+
+</div>

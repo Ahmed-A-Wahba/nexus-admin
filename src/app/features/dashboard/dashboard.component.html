@@ -1,0 +1,336 @@
+<div class="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto">
+
+  <!-- Top Bar Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+    <div>
+      <h1 class="text-2xl font-extrabold font-sora tracking-tight text-[#D2BBFF]">
+        Dashboard
+      </h1>
+      <p class="text-xs text-zinc-400 font-inter mt-0.5">
+        Overview of your offerwall performance
+      </p>
+    </div>
+    <!-- Dynamic Date Range Selector -->
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1A1A27]/90 border border-white/[0.08] text-xs text-[#E3E0F2] shadow-inner">
+        <svg class="w-4 h-4 text-[#D2BBFF] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <span class="text-zinc-400 font-medium">From</span>
+        <input
+          type="date"
+          [value]="startDate()"
+          (change)="onStartDateChange($any($event.target).value)"
+          class="bg-transparent text-white font-mono focus:outline-none cursor-pointer [color-scheme:dark]"
+        />
+        <span class="text-zinc-400 font-medium">To</span>
+        <input
+          type="date"
+          [value]="endDate()"
+          (change)="onEndDateChange($any($event.target).value)"
+          class="bg-transparent text-white font-mono focus:outline-none cursor-pointer [color-scheme:dark]"
+        />
+      </div>
+
+      <button
+        (click)="loadDashboardData()"
+        title="Refresh Dashboard Data"
+        class="p-2 rounded-xl bg-[#7C3AED]/20 border border-[#7C3AED]/40 text-[#D2BBFF] hover:bg-[#7C3AED]/30 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95 flex items-center justify-center"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dismissible Red Error Banner -->
+  @if (errorMessage(); as msg) {
+    <div class="bg-red-950/80 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl flex items-center justify-between text-xs font-medium backdrop-blur-xl shadow-lg animate-fade-in">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>{{ msg }}</span>
+      </div>
+      <button (click)="dismissError()" class="text-red-400 hover:text-red-100 transition-colors p-1 cursor-pointer" title="Dismiss">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Loading Skeleton -->
+  @if (isLoading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="h-24 bg-white/5 border border-white/10 rounded-xl"></div>
+      }
+    </div>
+    <div class="h-80 bg-white/5 border border-white/10 rounded-2xl animate-pulse"></div>
+  } @else {
+
+    <!-- KPI Grid (4 Columns x 2 Rows) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <!-- Revenue Today -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-purple-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">Revenue Today</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.revenueToday?.value ?? 0) | currency:'USD':'symbol':'1.2-2' }}</h3>
+            <span [ngClass]="getChangePosNeg(kpis()?.revenueToday?.percentageChange ?? 0)" class="text-xs font-semibold shrink-0">
+              {{ (kpis()?.revenueToday?.percentageChange ?? 0) >= 0 ? '↑' : '↓' }} {{ (kpis()?.revenueToday?.percentageChange ?? 0) | number:'1.0-1' }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue 30 Days -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-blue-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">Revenue (30 Days)</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.revenueTotal?.value ?? 0) | currency:'USD':'symbol':'1.2-2' }}</h3>
+            <span [ngClass]="getChangePosNeg(kpis()?.revenueTotal?.percentageChange ?? 0)" class="text-xs font-semibold shrink-0">
+              {{ (kpis()?.revenueTotal?.percentageChange ?? 0) >= 0 ? '↑' : '↓' }} {{ (kpis()?.revenueTotal?.percentageChange ?? 0) | number:'1.0-1' }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profit 30 Days -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-amber-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">Profit (30 Days)</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.profit?.value ?? 0) | currency:'USD':'symbol':'1.2-2' }}</h3>
+            <span [ngClass]="getChangePosNeg(kpis()?.profit?.percentageChange ?? 0)" class="text-xs font-semibold shrink-0">
+              {{ (kpis()?.profit?.percentageChange ?? 0) >= 0 ? '↑' : '↓' }} {{ (kpis()?.profit?.percentageChange ?? 0) | number:'1.0-1' }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clicks 30 Days -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-indigo-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">Clicks (30 Days)</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.clicks?.value ?? 0) | number }}</h3>
+            <span [ngClass]="getChangePosNeg(kpis()?.clicks?.percentageChange ?? 0)" class="text-xs font-semibold shrink-0">
+              {{ (kpis()?.clicks?.percentageChange ?? 0) >= 0 ? '↑' : '↓' }} {{ (kpis()?.clicks?.percentageChange ?? 0) | number:'1.0-1' }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Offers -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-emerald-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">Completed Offers (30 Days)</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.completedOffers?.value ?? 0) | number }}</h3>
+            <span [ngClass]="getChangePosNeg(kpis()?.completedOffers?.percentageChange ?? 0)" class="text-xs font-semibold shrink-0">
+              {{ (kpis()?.completedOffers?.percentageChange ?? 0) >= 0 ? '↑' : '↓' }} {{ (kpis()?.completedOffers?.percentageChange ?? 0) | number:'1.0-1' }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EPC -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-purple-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-[#D2BBFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">EPC (30 Days)</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.epc?.value ?? 0) | currency:'USD':'symbol':'1.2-2' }}</h3>
+            <span class="text-xs font-semibold text-zinc-400 shrink-0">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Offers -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-purple-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">Active Offers</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.activeOffers ?? 0) | number }}</h3>
+            <span class="text-xs font-semibold text-[#D2BBFF] shrink-0">Total</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved Revenue -->
+      <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-emerald-500/20 transition-all">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-zinc-400 font-medium">Approved Revenue</p>
+          <div class="flex items-baseline justify-between gap-1 mt-1">
+            <h3 class="text-xl font-bold font-sora text-white">{{ (kpis()?.approvedRevenue ?? 0) | currency:'USD':'symbol':'1.2-2' }}</h3>
+            <span class="text-xs font-semibold text-emerald-400 shrink-0">Approved</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Charts + Top Publishers Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Revenue Overview Chart — 8 cols -->
+      <div class="lg:col-span-8 bg-[#1A1A27]/90 border border-white/[0.08] rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-bold font-sora text-[#E3E0F2]">Revenue Overview</h2>
+          <div class="flex items-center p-1 rounded-lg bg-white/5 border border-white/10 text-xs gap-0.5">
+            @for (tf of timeframes; track tf) {
+              <button
+                (click)="setTimeframe(tf)"
+                [ngClass]="selectedTimeframe() === tf
+                  ? 'bg-[#7C3AED] text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition-colors cursor-pointer capitalize"
+              >{{ tf }}</button>
+            }
+          </div>
+        </div>
+        <!-- Chart container (Vanilla ApexCharts) -->
+        <div #revenueChart class="w-full"></div>
+      </div>
+
+      <!-- Top Publishers — 4 cols -->
+      <div class="lg:col-span-4 bg-[#1A1A27]/90 border border-white/[0.08] rounded-2xl p-6 flex flex-col">
+        <h2 class="text-base font-bold font-sora text-[#E3E0F2] mb-4">Top Publishers</h2>
+        <div class="space-y-3 flex-1">
+          @for (pub of topPublishers(); track pub.name; let i = $index) {
+            <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between hover:bg-white/[0.06] transition-all">
+              <div class="flex items-center gap-3 min-w-0">
+                <div
+                  class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 font-mono"
+                  [ngClass]="i === 0
+                    ? 'bg-[#7C3AED] text-white shadow-[0_0_10px_rgba(124,58,237,0.4)]'
+                    : i === 1
+                    ? 'bg-zinc-500/40 text-[#E3E0F2]'
+                    : 'bg-white/10 text-zinc-400'"
+                >{{ i + 1 }}</div>
+                <div class="truncate">
+                  <p class="text-sm font-semibold text-white truncate">{{ pub.name }}</p>
+                  <p class="text-xs text-zinc-400">{{ pub.conversionsCount | number }} Conversions</p>
+                </div>
+              </div>
+              <p class="text-sm font-mono font-bold text-[#D2BBFF] ml-2 shrink-0">
+                {{ pub.totalRevenue | currency:'USD':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          } @empty {
+            <div class="h-full flex flex-col items-center justify-center py-8 text-center text-xs text-zinc-500 font-mono space-y-2">
+              <svg class="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              <span>No publishers data available</span>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Real-time Events Table -->
+    <div class="bg-[#1A1A27]/90 border border-white/[0.08] rounded-2xl overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+        <h2 class="text-base font-bold font-sora text-[#E3E0F2]">Real-time Events</h2>
+        <div class="flex items-center gap-2 text-xs text-emerald-400 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Live Updates Active</span>
+        </div>
+      </div>
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-[#13131F]/60">
+            <tr class="text-[11px] font-mono font-semibold uppercase text-zinc-500 border-b border-white/[0.05]">
+              <th class="py-3 px-4">Time</th>
+              <th class="py-3 px-4">Event Type</th>
+              <th class="py-3 px-4">Offer</th>
+              <th class="py-3 px-4">Publisher</th>
+              <th class="py-3 px-4">Payout</th>
+              <th class="py-3 px-4">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/[0.04] text-xs">
+            @for (evt of events(); track $index) {
+              <tr class="hover:bg-white/[0.025] transition-colors">
+                <td class="py-3 px-4 text-zinc-500 font-mono whitespace-nowrap">{{ evt.time }}</td>
+                <td class="py-3 px-4 font-semibold text-white whitespace-nowrap">{{ evt.eventType }}</td>
+                <td class="py-3 px-4 text-zinc-300 max-w-[220px] truncate whitespace-nowrap">{{ evt.offer }}</td>
+                <td class="py-3 px-4 text-zinc-400 whitespace-nowrap">{{ evt.publisher }}</td>
+                <td class="py-3 px-4 font-mono font-bold text-[#D2BBFF] whitespace-nowrap">
+                  {{ evt.payout | currency:'USD':'symbol':'1.2-2' }}
+                </td>
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border uppercase tracking-wider"
+                    [ngClass]="getStatusClass(evt.status)"
+                  >{{ evt.status }}</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="py-8 text-center text-xs text-zinc-500 font-mono">
+                  <div class="flex flex-col items-center justify-center space-y-2">
+                    <svg class="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>No real-time events recorded</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  }
+
+</div>

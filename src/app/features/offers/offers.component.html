@@ -1,0 +1,388 @@
+<!-- Offers Page -->
+<div class="min-h-screen bg-[#080b14] px-6 sm:px-8 py-8 space-y-7 font-['Inter',_sans-serif]">
+
+  <!-- ─── Toast ─────────────────────────────────────────────── -->
+  <div
+    *ngIf="toastMessage"
+    class="fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl border shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all"
+    [ngClass]="{
+      'bg-emerald-500/15 border-emerald-500/30 text-emerald-300': toastMessage.type === 'success',
+      'bg-red-500/15 border-red-500/30 text-red-300': toastMessage.type === 'error'
+    }"
+  >
+    <svg *ngIf="toastMessage.type === 'success'" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+    </svg>
+    <svg *ngIf="toastMessage.type === 'error'" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+    <span class="text-xs font-semibold">{{ toastMessage.text }}</span>
+  </div>
+
+  <!-- ─── Page Header ──────────────────────────────────────── -->
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold font-['Sora',_sans-serif] bg-gradient-to-r from-[#D2BBFF] to-[#9575CD] bg-clip-text text-transparent tracking-tight">
+        Offers
+      </h1>
+      <p class="text-xs text-zinc-500 mt-1 font-mono">Manage all offers across your publisher network</p>
+    </div>
+    <!-- Live badge -->
+    <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      Live Sync
+    </div>
+  </div>
+
+  <!-- ─── Summary KPI Cards ─────────────────────────────────── -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" *ngIf="data">
+
+    <!-- Total Offers -->
+    <div class="bg-[#12151f] border border-white/[0.07] rounded-2xl p-5 shadow-lg group hover:border-purple-500/20 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-semibold">Total Offers</span>
+        <div class="w-9 h-9 rounded-xl bg-[#7C3AED]/10 border border-[#7C3AED]/20 flex items-center justify-center text-[#D2BBFF] group-hover:scale-105 transition-transform shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-end gap-3">
+        <h4 class="text-2xl font-extrabold font-['Sora',_sans-serif] text-white tracking-tight">
+          {{ data.summary.totalOffers | number }}
+        </h4>
+        <span class="text-xs font-semibold text-emerald-400 font-mono mb-0.5">
+          +{{ data.summary.addedToday }} today
+        </span>
+      </div>
+      <p class="text-[11px] text-zinc-500 mt-1">All offers in the system</p>
+    </div>
+
+    <!-- Active -->
+    <div class="bg-[#12151f] border border-white/[0.07] rounded-2xl p-5 shadow-lg group hover:border-emerald-500/20 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-semibold">Active</span>
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)] shrink-0"></span>
+        <h4 class="text-2xl font-extrabold font-['Sora',_sans-serif] text-white tracking-tight">
+          {{ data.summary.active | number }}
+        </h4>
+      </div>
+      <p class="text-[11px] text-zinc-500 mt-1">Currently live to publishers</p>
+    </div>
+
+    <!-- Hidden -->
+    <div class="bg-[#12151f] border border-white/[0.07] rounded-2xl p-5 shadow-lg group hover:border-red-500/10 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-semibold">Hidden by Admin</span>
+        <div class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:scale-105 transition-transform shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+          </svg>
+        </div>
+      </div>
+      <h4 class="text-2xl font-extrabold font-['Sora',_sans-serif] text-white tracking-tight">
+        {{ data.summary.hidden | number }}
+      </h4>
+      <p class="text-[11px] text-zinc-500 mt-1">Suppressed from all publishers</p>
+    </div>
+
+  </div>
+
+  <!-- KPI Skeleton -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" *ngIf="isLoading && !data">
+    <div *ngFor="let i of [1,2,3]" class="bg-[#12151f] border border-white/[0.07] rounded-2xl p-5 h-28 animate-pulse"></div>
+  </div>
+
+  <!-- ─── Table Card ─────────────────────────────────────────── -->
+  <div class="bg-[#12151f] border border-[#2a2d3d] rounded-2xl overflow-hidden shadow-[0_4px_40px_rgba(0,0,0,0.4)]">
+
+    <!-- ── Filter Bar ── -->
+    <div class="flex flex-wrap items-end gap-3 px-6 py-5 border-b border-white/[0.06]">
+
+      <!-- Search -->
+      <div class="flex-1 min-w-52">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 font-semibold block mb-1.5">Search</label>
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input
+            id="offers-search"
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search by offer name or ID..."
+            (keyup.enter)="applyFilters()"
+            class="w-full pl-9 pr-3 py-2 bg-[#0a0c14] border border-white/[0.08] rounded-xl text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-[#7C3AED]/60 focus:ring-1 focus:ring-[#7C3AED]/20 transition-all"
+          />
+        </div>
+      </div>
+
+      <!-- Status filter -->
+      <div class="min-w-36">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 font-semibold block mb-1.5">Status</label>
+        <select
+          [(ngModel)]="selectedStatus"
+          class="w-full px-3 py-2 bg-[#0a0c14] border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-[#7C3AED]/60 transition-all appearance-none cursor-pointer"
+        >
+          <option value="all" class="bg-[#0a0c14]">All Status</option>
+          <option value="ACTIVE" class="bg-[#0a0c14]">Active</option>
+          <option value="HIDDEN" class="bg-[#0a0c14]">Hidden</option>
+        </select>
+      </div>
+
+      <!-- Source filter -->
+      <div class="min-w-36">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-zinc-600 font-semibold block mb-1.5">Source</label>
+        <select
+          [(ngModel)]="selectedSource"
+          class="w-full px-3 py-2 bg-[#0a0c14] border border-white/[0.08] rounded-xl text-sm text-zinc-300 focus:outline-none focus:border-[#7C3AED]/60 transition-all appearance-none cursor-pointer"
+        >
+          <option value="all" class="bg-[#0a0c14]">All Sources</option>
+          <option value="Klinklabs" class="bg-[#0a0c14]">Klinklabs</option>
+        </select>
+      </div>
+
+      <!-- Apply -->
+      <button
+        id="offers-apply-btn"
+        (click)="applyFilters()"
+        [disabled]="isLoading"
+        class="px-5 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 text-white text-xs font-bold tracking-wide transition-all shadow-[0_0_15px_rgba(124,58,237,0.35)] cursor-pointer flex items-center gap-2 self-end"
+      >
+        <svg *ngIf="isLoading" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <svg *ngIf="!isLoading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+        </svg>
+        {{ isLoading ? 'Loading…' : 'Apply' }}
+      </button>
+
+      <!-- Reset -->
+      <button
+        (click)="resetFilters()"
+        [disabled]="isLoading"
+        class="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-zinc-400 hover:text-white text-xs font-semibold transition-all cursor-pointer disabled:opacity-40 self-end"
+      >
+        Reset
+      </button>
+
+    </div>
+
+    <!-- ── Table Loading State ── -->
+    <div *ngIf="isLoading" class="py-20 flex flex-col items-center gap-4">
+      <svg class="animate-spin w-8 h-8 text-[#7C3AED]" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <p class="text-xs text-zinc-500 font-mono">Loading offers...</p>
+    </div>
+
+    <!-- ── Error State ── -->
+    <div *ngIf="!isLoading && errorMessage" class="py-16 flex flex-col items-center gap-4 text-center px-6">
+      <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <h3 class="text-sm font-bold text-white">Failed to load offers</h3>
+      <p class="text-xs text-zinc-400 max-w-sm">{{ errorMessage }}</p>
+      <button (click)="loadOffers(true)" class="px-5 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold transition-all cursor-pointer">
+        Retry
+      </button>
+    </div>
+
+    <!-- ── Data Table ── -->
+    <div *ngIf="!isLoading && data" class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-[#0a0c14]/60 border-b border-white/[0.05]">
+          <tr class="text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-600">
+            <th class="py-3.5 px-5">OFFER</th>
+            <th class="py-3.5 px-5">SOURCE</th>
+            <th class="py-3.5 px-5 text-right">PAYOUT</th>
+            <th class="py-3.5 px-5 text-right">EPC</th>
+            <th class="py-3.5 px-5">STATUS</th>
+            <th class="py-3.5 px-5 text-right">PUBLISHERS</th>
+
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/[0.04] text-sm">
+
+          <!-- Data Rows -->
+          <tr
+            *ngFor="let offer of data.offers; trackBy: trackByOfferId"
+            class="hover:bg-white/[0.02] transition-colors group"
+          >
+
+            <!-- OFFER -->
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-3">
+                <!-- Logo / Avatar -->
+                <div class="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-white/[0.07] bg-[#0a0c14] flex items-center justify-center">
+                  <img
+                    *ngIf="offer.logoUrl"
+                    [src]="offer.logoUrl"
+                    [alt]="offer.name"
+                    class="w-full h-full object-cover"
+                    (error)="$any($event.target).style.display = 'none'"
+                  />
+                  <span *ngIf="!offer.logoUrl" class="text-sm font-bold text-[#D2BBFF]">
+                    {{ getLogoInitial(offer.name) }}
+                  </span>
+                </div>
+                <!-- Name + ID -->
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-white truncate max-w-52" [title]="offer.name">
+                    {{ offer.name }}
+                  </p>
+                  <p class="text-[11px] text-zinc-500 font-mono mt-0.5">
+                    ID: OFF-{{ offer.shortId }}
+                  </p>
+                </div>
+              </div>
+            </td>
+
+            <!-- SOURCE -->
+            <td class="py-4 px-5">
+              <span class="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 text-blue-300">
+                {{ offer.source }}
+              </span>
+            </td>
+
+            <!-- PAYOUT -->
+            <td class="py-4 px-5 text-right">
+              <span class="text-sm font-bold text-[#10B981] font-['Sora',_sans-serif]">
+                {{ offer.payout | currency:'USD':'symbol':'1.2-2' }}
+              </span>
+            </td>
+
+            <!-- EPC -->
+            <td class="py-4 px-5 text-right">
+              <span class="text-sm font-mono text-zinc-300">
+                {{ offer.epc | currency:'USD':'symbol':'1.4-4' }}
+              </span>
+            </td>
+
+            <!-- STATUS -->
+            <td class="py-4 px-5">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
+                [ngClass]="{
+                  'bg-emerald-500/10 border-emerald-500/25 text-emerald-400': isActive(offer.status),
+                  'bg-zinc-700/40 border-zinc-600/30 text-zinc-500': !isActive(offer.status)
+                }"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full shrink-0"
+                  [ngClass]="{
+                    'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.8)]': isActive(offer.status),
+                    'bg-zinc-500': !isActive(offer.status)
+                  }"
+                ></span>
+                {{ isActive(offer.status) ? 'Active' : 'Hidden' }}
+              </span>
+            </td>
+
+            <!-- PUBLISHERS -->
+            <td class="py-4 px-5 text-right">
+              <span class="text-sm font-bold text-white font-['Sora',_sans-serif]">{{ offer.publishersCount | number }}</span>
+              <p class="text-[11px] text-zinc-600 font-mono mt-0.5">publishers</p>
+            </td>
+
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="data.offers.length === 0">
+            <td colspan="6" class="py-20 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-700">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <p class="text-sm text-zinc-500 font-semibold">No offers match your current filters</p>
+                <button (click)="resetFilters()" class="text-xs text-[#D2BBFF] hover:underline cursor-pointer">
+                  Clear all filters
+                </button>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination Footer ── -->
+    <div
+      *ngIf="data && data.totalCount > 0"
+      class="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-white/[0.05] bg-[#0a0c14]/30"
+    >
+
+      <!-- Left: Count -->
+      <p class="text-xs text-zinc-500 font-mono shrink-0">
+        Showing
+        <span class="text-zinc-300 font-semibold">{{ getStartItem() }}–{{ getEndItem() }}</span>
+        of
+        <span class="text-zinc-300 font-semibold">{{ data.totalCount | number }}</span>
+        results
+      </p>
+
+      <!-- Right: Page controls -->
+      <div class="flex items-center gap-1">
+
+        <!-- Prev -->
+        <button
+          (click)="changePage(pageNumber - 1)"
+          [disabled]="pageNumber <= 1 || isLoading"
+          class="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+
+        <!-- Page Numbers -->
+        <ng-container *ngFor="let page of getPageNumbers()">
+          <span
+            *ngIf="page === -1"
+            class="w-8 h-8 flex items-center justify-center text-zinc-600 text-xs font-mono select-none"
+          >…</span>
+          <button
+            *ngIf="page !== -1"
+            (click)="changePage(page)"
+            [disabled]="isLoading"
+            class="w-8 h-8 rounded-lg border text-xs font-bold font-mono transition-all cursor-pointer disabled:opacity-50"
+            [ngClass]="page === pageNumber
+              ? 'bg-[#7C3AED] border-[#7C3AED] text-white shadow-[0_0_10px_rgba(124,58,237,0.5)]'
+              : 'border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white hover:bg-white/[0.08]'"
+          >
+            {{ page }}
+          </button>
+        </ng-container>
+
+        <!-- Next -->
+        <button
+          (click)="changePage(pageNumber + 1)"
+          [disabled]="pageNumber >= getTotalPages() || isLoading"
+          class="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

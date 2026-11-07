@@ -1,0 +1,306 @@
+<!-- Redeem Codes Page -->
+<div class="min-h-screen bg-[#080b14] px-6 sm:px-8 py-8 space-y-6 font-['Inter',_sans-serif]">
+
+  <!-- ─── Toast ─────────────────────────────────────────────── -->
+  <div
+    *ngIf="toastMessage"
+    class="fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl border shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all"
+    [ngClass]="{
+      'bg-emerald-500/15 border-emerald-500/30 text-emerald-300': toastMessage.type === 'success',
+      'bg-red-500/15 border-red-500/30 text-red-300': toastMessage.type === 'error'
+    }"
+  >
+    <svg *ngIf="toastMessage.type === 'success'" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+    </svg>
+    <svg *ngIf="toastMessage.type === 'error'" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+    <span class="text-xs font-semibold">{{ toastMessage.text }}</span>
+  </div>
+
+  <!-- ─── Recall Confirm Dialog ─────────────────────────────── -->
+  <div *ngIf="confirmRecallId" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div class="bg-[#12151f] border border-[#2a2d3d] rounded-2xl p-7 max-w-sm w-full shadow-[0_20px_60px_rgba(0,0,0,0.7)] space-y-5">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold font-['Sora',_sans-serif] text-white">Recall This Code?</h3>
+          <p class="text-xs text-zinc-400 mt-1">The code will be invalidated and the user's points will be refunded to their balance.</p>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-1">
+        <button
+          (click)="cancelRecall()"
+          class="flex-1 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="confirmRecall()"
+          class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all cursor-pointer shadow-[0_0_15px_rgba(225,29,72,0.3)]"
+        >
+          Yes, Recall
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Page Header ──────────────────────────────────────── -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-extrabold font-['Sora',_sans-serif] bg-gradient-to-r from-[#D2BBFF] to-[#9575CD] bg-clip-text text-transparent tracking-tight">
+        Redeem Codes
+      </h1>
+      <p class="text-xs text-zinc-500 mt-1 font-mono">View and manage codes generated from user redemptions</p>
+    </div>
+
+    <!-- Search -->
+    <div class="relative min-w-56">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input
+        id="redeem-search"
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search codes..."
+        (keyup.enter)="applySearch()"
+        class="w-full pl-9 pr-3 py-2 bg-[#12151f] border border-[#2a2d3d] rounded-xl text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-[#7C3AED]/60 focus:ring-1 focus:ring-[#7C3AED]/20 transition-all"
+      />
+    </div>
+  </div>
+
+  <!-- ─── Table Card ─────────────────────────────────────────── -->
+  <div class="bg-[#12151f] border border-[#2a2d3d] rounded-2xl overflow-hidden shadow-[0_4px_40px_rgba(0,0,0,0.4)]">
+
+    <!-- ── Tab Filter Bar ── -->
+    <div class="flex items-center gap-2 px-6 py-4 border-b border-white/[0.06] overflow-x-auto">
+      <button
+        *ngFor="let tab of tabs"
+        (click)="selectTab(tab)"
+        class="px-4 py-1.5 rounded-full text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap"
+        [ngClass]="activeTab === tab
+          ? 'bg-[#7C3AED] text-white shadow-[0_0_12px_rgba(124,58,237,0.45)]'
+          : 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200 border border-white/[0.06]'"
+      >
+        {{ tab }}
+      </button>
+    </div>
+
+    <!-- ── Loading State ── -->
+    <div *ngIf="isLoading" class="py-20 flex flex-col items-center gap-4">
+      <svg class="animate-spin w-8 h-8 text-[#7C3AED]" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <p class="text-xs text-zinc-500 font-mono">Loading redeem codes...</p>
+    </div>
+
+    <!-- ── Error State ── -->
+    <div *ngIf="!isLoading && errorMessage" class="py-16 flex flex-col items-center gap-4 text-center px-6">
+      <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <h3 class="text-sm font-bold text-white">Failed to load redeem codes</h3>
+      <p class="text-xs text-zinc-400 max-w-sm">{{ errorMessage }}</p>
+      <button (click)="loadCodes(true)" class="px-5 py-2 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold transition-all cursor-pointer">
+        Retry
+      </button>
+    </div>
+
+    <!-- ── Data Table ── -->
+    <div *ngIf="!isLoading && data" class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-[#0a0c14]/60 border-b border-white/[0.05]">
+          <tr class="text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-600">
+            <th class="py-3.5 px-5">CODE</th>
+            <th class="py-3.5 px-5">POINTS REDEEMED</th>
+            <th class="py-3.5 px-5">USER ID</th>
+            <th class="py-3.5 px-5">STATUS</th>
+            <th class="py-3.5 px-5">CREATED DATE</th>
+            <th class="py-3.5 px-5">EXPIRES</th>
+            <th class="py-3.5 px-5 text-center">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/[0.04] text-sm">
+
+          <!-- Data Rows -->
+          <tr
+            *ngFor="let item of data.codes; trackBy: trackById"
+            class="hover:bg-white/[0.02] transition-colors group"
+          >
+
+            <!-- CODE -->
+            <td class="py-4 px-5">
+              <span class="font-bold font-mono text-white tracking-wider text-sm">
+                {{ item.code }}
+              </span>
+            </td>
+
+            <!-- POINTS REDEEMED -->
+            <td class="py-4 px-5">
+              <p class="text-sm font-bold text-white font-['Sora',_sans-serif]">
+                {{ item.points | number }} <span class="text-[10px] font-mono text-zinc-500 font-normal">pts</span>
+              </p>
+              <p class="text-[11px] text-zinc-500 font-mono mt-0.5">
+                {{ item.value | currency:'USD':'symbol':'1.2-2' }}
+              </p>
+            </td>
+
+            <!-- USER ID -->
+            <td class="py-4 px-5">
+              <span class="font-mono text-xs text-zinc-400">#USR-{{ item.userId | slice:0:8 }}</span>
+            </td>
+
+            <!-- STATUS -->
+            <td class="py-4 px-5">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold font-mono uppercase tracking-wider"
+                [ngClass]="statusClass(item.status)"
+              >
+                <span class="w-1.5 h-1.5 rounded-full shrink-0" [ngClass]="statusDotClass(item.status)"></span>
+                {{ item.status }}
+              </span>
+            </td>
+
+            <!-- CREATED DATE -->
+            <td class="py-4 px-5">
+              <span class="text-xs text-zinc-400 font-mono whitespace-nowrap">{{ formatDate(item.createdAt) }}</span>
+            </td>
+
+            <!-- EXPIRES -->
+            <td class="py-4 px-5">
+              <span
+                class="text-xs font-mono whitespace-nowrap"
+                [ngClass]="item.expiresAt && isExpired(item.expiresAt) ? 'text-rose-400/70' : 'text-zinc-400'"
+              >
+                {{ formatDate(item.expiresAt) }}
+              </span>
+            </td>
+
+            <!-- ACTIONS -->
+            <td class="py-4 px-5 text-center">
+
+              <!-- Recall button — only for ACTIVE codes -->
+              <button
+                *ngIf="item.status === 'ACTIVE'"
+                (click)="openRecallConfirm(item.id)"
+                [disabled]="recallingId === item.id"
+                title="Recall this code"
+                class="px-3 py-1.5 rounded-lg border border-rose-500/30 text-rose-400 text-[10px] font-bold font-mono uppercase tracking-wider hover:bg-rose-500/10 transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap inline-flex items-center gap-1.5"
+              >
+                <svg *ngIf="recallingId === item.id" class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <svg *ngIf="recallingId !== item.id" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                </svg>
+                {{ recallingId === item.id ? 'Recalling...' : 'Recall' }}
+              </button>
+
+              <!-- Empty placeholder for non-ACTIVE rows -->
+              <span *ngIf="item.status !== 'ACTIVE'" class="text-zinc-700 text-xs font-mono">—</span>
+
+            </td>
+
+
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="data.codes.length === 0">
+            <td colspan="7" class="py-20 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-700">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                  </svg>
+                </div>
+                <p class="text-sm text-zinc-500 font-semibold">No redeem codes found</p>
+                <p class="text-xs text-zinc-600">Try adjusting your search or filter</p>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination Footer ── -->
+    <div
+      *ngIf="data && data.totalCount > 0"
+      class="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-white/[0.05] bg-[#0a0c14]/30"
+    >
+
+      <!-- Left: Count -->
+      <p class="text-xs text-zinc-500 font-mono shrink-0">
+        Showing
+        <span class="text-zinc-300 font-semibold">{{ getStartItem() }}–{{ getEndItem() }}</span>
+        of
+        <span class="text-zinc-300 font-semibold">{{ data.totalCount | number }}</span>
+        codes
+      </p>
+
+      <!-- Right: Page controls -->
+      <div class="flex items-center gap-1">
+
+        <button
+          (click)="changePage(pageNumber - 1)"
+          [disabled]="pageNumber <= 1 || isLoading"
+          class="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+
+        <ng-container *ngFor="let page of getPageNumbers()">
+          <span *ngIf="page === -1" class="w-8 h-8 flex items-center justify-center text-zinc-600 text-xs font-mono select-none">…</span>
+          <button
+            *ngIf="page !== -1"
+            (click)="changePage(page)"
+            [disabled]="isLoading"
+            class="w-8 h-8 rounded-lg border text-xs font-bold font-mono transition-all cursor-pointer disabled:opacity-50"
+            [ngClass]="page === pageNumber
+              ? 'bg-[#7C3AED] border-[#7C3AED] text-white shadow-[0_0_10px_rgba(124,58,237,0.5)]'
+              : 'border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white hover:bg-white/[0.08]'"
+          >
+            {{ page }}
+          </button>
+        </ng-container>
+
+        <button
+          (click)="changePage(pageNumber + 1)"
+          [disabled]="pageNumber >= getTotalPages() || isLoading"
+          class="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ─── Bottom Info Callout ───────────────────────────────── -->
+  <div class="flex items-start gap-3 px-5 py-4 rounded-2xl bg-[#7C3AED]/5 border border-[#7C3AED]/15 text-zinc-400">
+    <svg class="w-4 h-4 mt-0.5 text-[#D2BBFF] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <p class="text-xs font-mono leading-relaxed">
+      <span class="text-[#D2BBFF] font-semibold">Note: </span>
+      Expired or recalled codes automatically refund points to the user's balance.
+    </p>
+  </div>
+
+</div>

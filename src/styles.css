@@ -1,0 +1,47 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer utilities {
+  .glass-card {
+    background: rgba(18, 18, 30, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .glass-input {
+    background: rgba(13, 13, 25, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .glass-input:focus-within, .glass-input:focus {
+    border-color: rgba(139, 92, 246, 0.6);
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.25);
+  }
+
+  .btn-purple-glow {
+    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+    box-shadow: 0px 0px 20px 0px rgba(124, 58, 237, 0.35);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .btn-purple-glow:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    box-shadow: 0px 0px 30px 0px rgba(124, 58, 237, 0.6);
+    transform: translateY(-1px);
+  }
+
+  .btn-purple-glow:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0px 0px 15px 0px rgba(124, 58, 237, 0.4);
+  }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+}
